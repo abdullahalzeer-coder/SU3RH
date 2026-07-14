@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>سعره</title>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ededf2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="سعره">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="rail" aria-hidden="true"></div>
+
+<div id="app">
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-mark">🥗</span>
+        <span class="brand-name" data-i18n="appName">سعره</span>
+      </div>
+      <div class="topbar-left">
+        <button class="lang-btn" id="langBtn" type="button">
+          <span id="langTxt">EN</span>
+          <span class="lang-ava">ع</span>
+        </button>
+        <span class="dot"></span>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- ============ TAB: TODAY ============ -->
+    <section class="view" id="view-today">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title" id="dateLabel">اليوم</h1>
+          <div class="page-sub" id="entryCount">—</div>
+        </div>
+        <div class="icon-row">
+          <button class="icon-btn flip" id="prevDay" type="button" aria-label="prev">‹</button>
+          <button class="icon-btn flip is-on" id="nextDay" type="button" aria-label="next">›</button>
+        </div>
+      </div>
+
+      <!-- calorie ring + macro bars -->
+      <div class="card hero">
+        <div class="ring-wrap">
+          <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
+            <circle class="ring-track" cx="100" cy="100" r="86"></circle>
+            <circle class="ring-fill" id="calRing" cx="100" cy="100" r="86"></circle>
+          </svg>
+          <div class="ring-center">
+            <div class="ring-value" id="calEaten">0</div>
+            <div class="ring-sub"><span id="calGoal">0</span> <span data-i18n="kcal">سعرة</span></div>
+            <div class="ring-left" id="calLeft">—</div>
+          </div>
+        </div>
+
+        <div class="macros">
+          <div class="macro" data-macro="protein">
+            <div class="macro-head">
+              <span class="macro-name" data-i18n="protein">بروتين</span>
+              <span class="macro-num"><b id="pVal">0</b> / <span id="pGoal">0</span> <span data-i18n="g">غ</span></span>
+            </div>
+            <div class="bar"><div class="bar-fill" id="pBar"></div></div>
+          </div>
+          <div class="macro" data-macro="carbs">
+            <div class="macro-head">
+              <span class="macro-name" data-i18n="carbs">كربوهيدرات</span>
+              <span class="macro-num"><b id="cVal">0</b> / <span id="cGoal">0</span> <span data-i18n="g">غ</span></span>
+            </div>
+            <div class="bar"><div class="bar-fill" id="cBar"></div></div>
+          </div>
+          <div class="macro" data-macro="fat">
+            <div class="macro-head">
+              <span class="macro-name" data-i18n="fat">دهون</span>
+              <span class="macro-num"><b id="fVal">0</b> / <span id="fGoal">0</span> <span data-i18n="g">غ</span></span>
+            </div>
+            <div class="bar"><div class="bar-fill" id="fBar"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- micronutrients -->
+      <div class="card" id="microCard">
+        <div class="card-title">
+          <span>🧪</span>
+          <h2 data-i18n="microTitle">المغذيات الدقيقة</h2>
+        </div>
+        <div class="macros" id="microList"></div>
+      </div>
+
+      <!-- entries -->
+      <div class="section-head">
+        <h2 data-i18n="todayMeals">وجبات اليوم</h2>
+        <button class="btn btn-sm btn-primary" id="goAdd" type="button" data-i18n="addFood">+ إضافة</button>
+      </div>
+
+      <div id="entryList" class="list"></div>
+
+      <div class="empty" id="entryEmpty" hidden>
+        <div class="empty-emoji">🍽️</div>
+        <p data-i18n="noMeals">لا توجد وجبات مسجّلة بعد.</p>
+        <button class="btn btn-primary" id="emptyAdd" type="button" data-i18n="scanPhoto">📷 صوّر وجبتك</button>
+      </div>
+    </section>
+
+    <!-- ============ TAB: ADD ============ -->
+    <section class="view" id="view-add" hidden>
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title" data-i18n="tabAdd">إضافة</h1>
+          <div class="page-sub" data-i18n="addSub">صوّر، أو أدخل يدوياً، أو اختر وجبة محفوظة</div>
+        </div>
+      </div>
+
+      <!-- --- photo scanner --- -->
+      <div class="card">
+        <div class="card-title">
+          <span>📷</span>
+          <h2 data-i18n="scanTitle">تحليل صورة الوجبة</h2>
+        </div>
+        <p class="muted small" data-i18n="scanHelp">صوّر وجبتك أو اختر صورة، وسيقوم الذكاء الاصطناعي بتقدير السعرات والماكروز.</p>
+
+        <input type="file" id="photoInput" accept="image/*" hidden>
+        <div class="scan-actions">
+          <button class="btn btn-primary btn-block" id="pickPhoto" type="button" data-i18n="choosePhoto">📷 التقاط / اختيار صورة</button>
+        </div>
+
+        <div id="scanPreviewWrap" hidden>
+          <img id="scanPreview" class="scan-preview" alt="">
+          <div class="scan-status" id="scanStatus"></div>
+        </div>
+
+        <div id="scanResult" hidden>
+          <div class="result-head">
+            <span class="chip" id="confChip"></span>
+            <span class="muted small" id="scanNotes"></span>
+          </div>
+          <div id="scanItems" class="scan-items"></div>
+          <div class="micro-pills" id="scanMicros"></div>
+          <div class="result-total">
+            <span data-i18n="total">المجموع</span>
+            <span><b id="scanTotalCal">0</b> <span data-i18n="kcal">سعرة</span></span>
+          </div>
+          <div class="row-2">
+            <button class="btn btn-ghost" id="scanCancel" type="button" data-i18n="cancel">إلغاء</button>
+            <button class="btn btn-primary" id="scanConfirm" type="button" data-i18n="addToDay">إضافة لليوم</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- --- build from ingredients --- -->
+      <div class="card">
+        <div class="card-title">
+          <span>🥣</span>
+          <h2 data-i18n="buildTitle">بناء وجبة من المكونات</h2>
+        </div>
+        <p class="muted small" data-i18n="buildHelp">اختر المكونات وأدخل وزن كل منها بالغرام — تُحسب السعرات والماكروز والمغذيات تلقائياً.</p>
+
+        <input type="search" id="foodSearch" class="search" placeholder="🔎 صدر دجاج، أرز، تمر…">
+        <div class="cat-row" id="catRow"></div>
+        <div id="foodResults" class="food-results"></div>
+
+        <div id="builder" hidden>
+          <div class="builder-head">
+            <span data-i18n="mealIngredients">مكونات الوجبة</span>
+            <button class="btn-link" id="builderClear" type="button" data-i18n="clearAll">مسح الكل</button>
+          </div>
+          <div id="builderList" class="builder-list"></div>
+
+          <div class="builder-total">
+            <div class="bt-cal"><b id="btCal">0</b> <span data-i18n="kcal">سعرة</span></div>
+            <div class="bt-macros" id="btMacros"></div>
+          </div>
+          <div class="micro-pills" id="btMicros"></div>
+
+          <label class="field" style="margin-top:12px">
+            <span data-i18n="mealName">اسم الوجبة</span>
+            <input type="text" id="btName" placeholder="—">
+          </label>
+          <label class="check">
+            <input type="checkbox" id="btSave">
+            <span data-i18n="saveMeal">حفظ كوجبة مفضّلة</span>
+          </label>
+          <button class="btn btn-primary btn-block" id="btAdd" type="button" data-i18n="addToDay">إضافة لليوم</button>
+        </div>
+      </div>
+
+      <!-- --- custom ingredients --- -->
+      <div class="card">
+        <div class="card-title">
+          <span>🏷️</span>
+          <h2 data-i18n="customTitle">مكوناتي المخصصة</h2>
+        </div>
+        <p class="muted small" data-i18n="customHelp">صوّر جدول القيم الغذائية على العبوة ليُقرأ تلقائياً، أو أدخل القيم يدوياً. يُحفظ المكوّن لاستخدامه في أي وجبة لاحقاً.</p>
+
+        <input type="file" id="labelInput" accept="image/*" hidden>
+        <div class="row-2">
+          <button class="btn btn-secondary" id="manualIngBtn" type="button" data-i18n="manualIngredient">✏️ إدخال يدوي</button>
+          <button class="btn btn-primary" id="scanLabelBtn" type="button" data-i18n="scanLabel">📷 تصوير الملصق</button>
+        </div>
+
+        <div id="cfPreviewWrap" hidden>
+          <img id="cfPreview" class="scan-preview" alt="">
+          <div class="scan-status" id="cfStatus"></div>
+        </div>
+
+        <!-- the form: filled by the label scanner, or by hand -->
+        <div id="customForm" class="form" style="margin-top:14px" hidden>
+          <label class="field">
+            <span data-i18n="ingredientName">اسم المكوّن</span>
+            <input type="text" id="cfName" placeholder="—">
+          </label>
+          <label class="field">
+            <span data-i18n="category">التصنيف</span>
+            <select id="cfCat"></select>
+          </label>
+
+          <label class="check">
+            <input type="checkbox" id="cfCounted">
+            <span data-i18n="countedByPiece">يُحسب بالحبة/الحصة بدل الغرام</span>
+          </label>
+          <div class="row-2" id="cfUnitRow" hidden>
+            <label class="field">
+              <span data-i18n="unitLabel">اسم الوحدة</span>
+              <input type="text" id="cfUnitLabel" placeholder="حبة">
+            </label>
+            <label class="field">
+              <span data-i18n="unitWeight">وزن الوحدة (غ)</span>
+              <input type="number" id="cfUnitG" min="1" step="0.1" inputmode="decimal" placeholder="28">
+            </label>
+          </div>
+
+          <p class="muted small" data-i18n="per100Note">القيم التالية لكل ١٠٠ غرام.</p>
+          <div class="grid-4">
+            <label class="field">
+              <span data-i18n="kcal">سعرة</span>
+              <input type="number" id="cfCal" min="0" step="1" inputmode="numeric">
+            </label>
+            <label class="field">
+              <span data-i18n="protein">بروتين</span>
+              <input type="number" id="cfP" min="0" step="0.1" inputmode="decimal">
+            </label>
+            <label class="field">
+              <span data-i18n="carbs">كربوهيدرات</span>
+              <input type="number" id="cfC" min="0" step="0.1" inputmode="decimal">
+            </label>
+            <label class="field">
+              <span data-i18n="fat">دهون</span>
+              <input type="number" id="cfF" min="0" step="0.1" inputmode="decimal">
+            </label>
+          </div>
+
+          <details class="disc" id="cfMicrosWrap">
+            <summary>🧪 <span data-i18n="microOptional">المغذيات الدقيقة (اختياري)</span></summary>
+            <div class="grid-4" id="cfMicros" style="margin-top:10px"></div>
+          </details>
+
+          <div class="row-2">
+            <button class="btn btn-ghost" id="cfCancel" type="button" data-i18n="cancel">إلغاء</button>
+            <button class="btn btn-primary" id="cfSave" type="button" data-i18n="saveIngredient">حفظ المكوّن</button>
+          </div>
+        </div>
+
+        <div id="customList" class="list" style="margin-top:14px"></div>
+        <p class="muted small" id="customEmpty" data-i18n="noCustom">لم تضف أي مكوّن بعد.</p>
+      </div>
+
+      <!-- --- manual --- -->
+      <div class="card">
+        <div class="card-title">
+          <span>✏️</span>
+          <h2 data-i18n="manualTitle">إدخال يدوي</h2>
+        </div>
+        <form id="manualForm" class="form">
+          <label class="field">
+            <span data-i18n="foodName">اسم الطعام</span>
+            <input type="text" id="mName" required placeholder="—">
+          </label>
+          <div class="grid-4">
+            <label class="field">
+              <span data-i18n="kcal">سعرة</span>
+              <input type="number" id="mCal" min="0" step="1" required inputmode="numeric">
+            </label>
+            <label class="field">
+              <span data-i18n="protein">بروتين</span>
+              <input type="number" id="mP" min="0" step="0.1" value="0" inputmode="decimal">
+            </label>
+            <label class="field">
+              <span data-i18n="carbs">كربوهيدرات</span>
+              <input type="number" id="mC" min="0" step="0.1" value="0" inputmode="decimal">
+            </label>
+            <label class="field">
+              <span data-i18n="fat">دهون</span>
+              <input type="number" id="mF" min="0" step="0.1" value="0" inputmode="decimal">
+            </label>
+          </div>
+          <details class="disc" id="manualMicroWrap">
+            <summary>
+              🧪 <span data-i18n="microOptional">المغذيات الدقيقة (اختياري)</span>
+            </summary>
+            <p class="muted small" data-i18n="microOptionalHelp">اتركها فارغة إن لم تكن تعرفها — لن تؤثر على السعرات.</p>
+            <div class="grid-4" id="microInputs"></div>
+          </details>
+
+          <label class="check">
+            <input type="checkbox" id="mSave">
+            <span data-i18n="saveMeal">حفظ كوجبة مفضّلة</span>
+          </label>
+          <button class="btn btn-blue btn-block" type="submit" data-i18n="add">إضافة</button>
+        </form>
+      </div>
+
+      <!-- --- saved meals --- -->
+      <div class="card">
+        <div class="card-title">
+          <span>⭐</span>
+          <h2 data-i18n="savedTitle">وجبات محفوظة</h2>
+        </div>
+        <input type="search" id="savedSearch" class="search" placeholder="🔎">
+        <div id="savedList" class="list"></div>
+        <p class="muted small" id="savedEmpty" data-i18n="noSaved">لا توجد وجبات محفوظة. احفظ وجبة لتضيفها بنقرة واحدة لاحقاً.</p>
+      </div>
+    </section>
+
+    <!-- ============ TAB: WEIGHT ============ -->
+    <section class="view" id="view-weight" hidden>
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title" data-i18n="weightTitle">الوزن</h1>
+          <div class="page-sub" id="weightSub">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="weight-stats">
+          <div class="stat">
+            <div class="stat-val" id="wCurrent">—</div>
+            <div class="stat-lbl" data-i18n="current">الحالي</div>
+          </div>
+          <div class="stat">
+            <div class="stat-val" id="wChange">—</div>
+            <div class="stat-lbl" data-i18n="change30">آخر ٣٠ يوم</div>
+          </div>
+          <div class="stat">
+            <div class="stat-val" id="wStart">—</div>
+            <div class="stat-lbl" data-i18n="start">البداية</div>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <svg id="wChart" class="chart" viewBox="0 0 320 150" preserveAspectRatio="none"></svg>
+          <p class="muted small center" id="wChartEmpty" data-i18n="noWeight">سجّل وزنك مرتين على الأقل لعرض الرسم البياني.</p>
+        </div>
+
+        <form id="weightForm" class="form">
+          <div class="row-2">
+            <label class="field">
+              <span data-i18n="weightKg">الوزن (كغ)</span>
+              <input type="number" id="wInput" step="0.1" min="20" max="400" required inputmode="decimal">
+            </label>
+            <label class="field">
+              <span data-i18n="date">التاريخ</span>
+              <input type="date" id="wDate" required>
+            </label>
+          </div>
+          <button class="btn btn-primary btn-block" type="submit" data-i18n="logWeight">تسجيل الوزن</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>📋</span><h2 data-i18n="history">السجل</h2></div>
+        <div id="weightList" class="list"></div>
+      </div>
+    </section>
+
+    <!-- ============ TAB: SETTINGS ============ -->
+    <section class="view" id="view-settings" hidden>
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title" data-i18n="tabSettings">الإعدادات</h1>
+          <div class="page-sub" data-i18n="settingsSub">الأهداف، المفتاح، والبيانات</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>🎯</span><h2 data-i18n="goalsTitle">أهدافي اليومية</h2></div>
+        <form id="goalsForm" class="form">
+          <div class="grid-4">
+            <label class="field">
+              <span data-i18n="kcal">سعرة</span>
+              <input type="number" id="gCal" min="800" max="8000" required inputmode="numeric">
+            </label>
+            <label class="field">
+              <span data-i18n="protein">بروتين</span>
+              <input type="number" id="gP" min="0" required inputmode="numeric">
+            </label>
+            <label class="field">
+              <span data-i18n="carbs">كربوهيدرات</span>
+              <input type="number" id="gC" min="0" required inputmode="numeric">
+            </label>
+            <label class="field">
+              <span data-i18n="fat">دهون</span>
+              <input type="number" id="gF" min="0" required inputmode="numeric">
+            </label>
+          </div>
+          <button class="btn btn-primary btn-block" type="submit" data-i18n="saveGoals">حفظ الأهداف</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>🧮</span><h2 data-i18n="calcTitle">حساب الأهداف تلقائياً</h2></div>
+        <form id="calcForm" class="form">
+          <div class="row-2">
+            <label class="field">
+              <span data-i18n="age">العمر</span>
+              <input type="number" id="pAge" min="12" max="99" required inputmode="numeric">
+            </label>
+            <label class="field">
+              <span data-i18n="sex">الجنس</span>
+              <select id="pSex">
+                <option value="male" data-i18n="male">ذكر</option>
+                <option value="female" data-i18n="female">أنثى</option>
+              </select>
+            </label>
+          </div>
+          <div class="row-2">
+            <label class="field">
+              <span data-i18n="heightCm">الطول (سم)</span>
+              <input type="number" id="pHeight" min="120" max="230" required inputmode="numeric">
+            </label>
+            <label class="field">
+              <span data-i18n="weightKg">الوزن (كغ)</span>
+              <input type="number" id="pWeight" min="30" max="300" step="0.1" required inputmode="decimal">
+            </label>
+          </div>
+          <label class="field">
+            <span data-i18n="activity">مستوى النشاط</span>
+            <select id="pAct">
+              <option value="1.2" data-i18n="act1">قليل الحركة (مكتبي)</option>
+              <option value="1.375" data-i18n="act2">نشاط خفيف (١-٣ أيام)</option>
+              <option value="1.55" data-i18n="act3">نشاط متوسط (٣-٥ أيام)</option>
+              <option value="1.725" data-i18n="act4">نشاط عالٍ (٦-٧ أيام)</option>
+              <option value="1.9" data-i18n="act5">نشاط شديد جداً</option>
+            </select>
+          </label>
+          <label class="field">
+            <span data-i18n="goal">الهدف</span>
+            <select id="pGoalType">
+              <option value="cut" data-i18n="goalCut">خسارة دهون (-٥٠٠)</option>
+              <option value="maintain" data-i18n="goalMaintain">المحافظة على الوزن</option>
+              <option value="bulk" data-i18n="goalBulk">زيادة عضلية (+٣٠٠)</option>
+            </select>
+          </label>
+          <button class="btn btn-secondary btn-block" type="submit" data-i18n="calcApply">احسب وطبّق</button>
+          <p class="muted small" data-i18n="calcNote">يعتمد الحساب على معادلة Mifflin-St Jeor. اعتبرها نقطة بداية وعدّلها حسب نتائجك.</p>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>🧪</span><h2 data-i18n="microSettingsTitle">المغذيات الدقيقة</h2></div>
+        <p class="muted small" data-i18n="microSettingsHelp">اختر ما تريد تتبّعه، وعدّل الهدف اليومي لكل عنصر.</p>
+        <div id="microSettingsList" class="micro-settings"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>🤖</span><h2 data-i18n="aiTitle">الذكاء الاصطناعي</h2></div>
+        <p class="muted small" data-i18n="aiHelp">مطلوب لتحليل الصور فقط. المفتاح يُحفظ على جهازك ولا يُرسل إلا للمزوّد الذي تختاره.</p>
+
+        <label class="field" style="margin-top:12px">
+          <span data-i18n="provider">المزوّد</span>
+          <select id="aiProvider">
+            <option value="claude">Claude (Anthropic)</option>
+            <option value="gemini">Gemini (Google)</option>
+            <option value="openai">OpenAI (ChatGPT)</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span data-i18n="model">النموذج</span>
+          <input type="text" id="aiModel" autocomplete="off" spellcheck="false">
+        </label>
+
+        <label class="field">
+          <span data-i18n="apiKey">المفتاح</span>
+          <input type="password" id="apiKey" placeholder="••••••••" autocomplete="off" spellcheck="false">
+        </label>
+
+        <div class="row-2">
+          <button class="btn btn-ghost" id="apiClear" type="button" data-i18n="clear">مسح</button>
+          <button class="btn btn-primary" id="aiSave" type="button" data-i18n="save">حفظ</button>
+        </div>
+        <p class="muted small" style="margin-bottom:0">
+          <a id="keysLink" href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">—</a>
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>💾</span><h2 data-i18n="dataTitle">البيانات</h2></div>
+        <p class="muted small" data-i18n="dataHelp">بياناتك محفوظة على هذا الجهاز فقط. صدّر نسخة احتياطية بانتظام.</p>
+        <div class="row-2">
+          <button class="btn btn-soft" id="exportBtn" type="button" data-i18n="export">تصدير نسخة</button>
+          <button class="btn btn-secondary" id="importBtn" type="button" data-i18n="import">استيراد</button>
+        </div>
+        <input type="file" id="importInput" accept="application/json" hidden>
+        <button class="btn btn-danger btn-block" id="resetBtn" type="button" data-i18n="reset">مسح كل البيانات</button>
+      </div>
+
+      <p class="version">سعره · v1.0</p>
+    </section>
+
+  </main>
+
+  <!-- ============ TAB BAR ============ -->
+  <nav class="tabbar">
+    <button class="tab is-active" data-tab="today" type="button">
+      <span class="tab-ico">🍽️</span><span class="tab-lbl" data-i18n="tabToday">اليوم</span>
+    </button>
+    <button class="tab" data-tab="add" type="button">
+      <span class="tab-ico">➕</span><span class="tab-lbl" data-i18n="tabAdd">إضافة</span>
+    </button>
+    <button class="tab" data-tab="weight" type="button">
+      <span class="tab-ico">⚖️</span><span class="tab-lbl" data-i18n="tabWeight">الوزن</span>
+    </button>
+    <button class="tab" data-tab="settings" type="button">
+      <span class="tab-ico">⚙️</span><span class="tab-lbl" data-i18n="tabSettings">الإعدادات</span>
+    </button>
+  </nav>
+
+  <div id="toast" class="toast" hidden></div>
+</div>
+
+<script src="nutrients.js"></script>
+<script src="foods.js"></script>
+<script src="i18n.js"></script>
+<script src="ai.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
