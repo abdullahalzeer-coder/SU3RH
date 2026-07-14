@@ -8,23 +8,26 @@ standalone app (PWA) — no App Store, no build step, no dependencies.
 
 ---
 
-## 1. Put it online (required for iPhone)
+## 1. It's hosted on GitHub Pages
 
-iOS only allows "Add to Home Screen" from an **HTTPS** page, so the folder has to be hosted.
-Easiest option, no account or tooling needed:
+The app is live at:
 
-1. Open **https://app.netlify.com/drop**
-2. Drag this whole `سعره` folder onto the page.
-3. You get an HTTPS URL like `https://something-random.netlify.app`.
-   (Sign in with a free account if you want that URL to stick around permanently.)
+**https://abdullahalzeer-coder.github.io/SU3RH/**
 
-Any static host works the same way — GitHub Pages, Vercel, Cloudflare Pages.
+Every push to `main` redeploys it automatically — there is nothing to upload.
+
+If Pages is not switched on yet: repo **Settings → Pages → Source: Deploy from a branch →
+Branch: `main`, folder: `/ (root)` → Save**. Give it a minute.
 
 ## 2. Install on your iPhone
 
-1. Open the URL in **Safari** (not Chrome — only Safari can install PWAs on iOS).
+1. Open **https://abdullahalzeer-coder.github.io/SU3RH/** in **Safari**
+   (not Chrome — only Safari can install PWAs on iOS).
 2. Tap the **Share** button → **Add to Home Screen**.
 3. Launch it from the home screen. It runs full screen with its own icon, and works offline.
+
+Updates arrive on their own: the service worker is network-first, so the next time you open the
+app with a signal it picks up whatever was last pushed.
 
 ## 3. Add an AI key (for photo scanning only)
 
