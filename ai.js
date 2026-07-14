@@ -160,8 +160,10 @@ const ADAPTERS = {
       model,
       max_tokens: 4096,
       system: sys,
+      // No `effort` here on purpose: the Model field in Settings is free text,
+      // and effort is rejected by some models (Haiku 4.5 among them). Sending
+      // it would break the app for anyone who picks a cheaper model.
       output_config: {
-        effort: 'medium',
         format: { type: 'json_schema', schema },
       },
       messages: [{
