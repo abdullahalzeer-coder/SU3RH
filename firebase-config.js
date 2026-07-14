@@ -14,10 +14,10 @@
  * ------------------------------------------------------------------ */
 
 window.FIREBASE_CONFIG = {
-  apiKey: '',
-  authDomain: '',
-  projectId: '',
-  storageBucket: '',
-  messagingSenderId: '',
-  appId: '',
+  apiKey: 'AIzaSyDd5kaJnq5-NSJZoKkAhs7Dpkqe5tuL4LA',
+  authDomain: 'su3rh-abdullah.firebaseapp.com',
+  projectId: 'su3rh-abdullah',
+  storageBucket: 'su3rh-abdullah.firebasestorage.app',
+  messagingSenderId: '965266495929',
+  appId: '1:965266495929:web:0b8f240a5e6ea4630cfe68',
 };

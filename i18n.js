@@ -99,7 +99,8 @@ const I18N = {
     wrongLogin: 'البريد أو كلمة المرور غير صحيحة',
     tooMany: 'محاولات كثيرة — انتظر قليلاً',
     netError: 'لا يوجد اتصال بالإنترنت',
-    permDenied: 'لا تملك صلاحية الوصول — تحقق من قواعد Firestore',
+    permDenied: 'لا تملك صلاحية الوصول — انشر قواعد Firestore في لوحة Firebase',
+    authNotEnabled: 'فعّل تسجيل الدخول بالبريد في Firebase: Authentication ← Email/Password',
 
     dataTitle: 'البيانات',
     dataHelp: 'بياناتك محفوظة على هذا الجهاز فقط. صدّر نسخة احتياطية بانتظام.',
@@ -209,7 +210,8 @@ const I18N = {
     wrongLogin: 'Wrong email or password',
     tooMany: 'Too many attempts — wait a moment',
     netError: 'No internet connection',
-    permDenied: 'Access denied — check your Firestore rules',
+    permDenied: 'Access denied — publish the Firestore rules in the Firebase console',
+    authNotEnabled: 'Enable email login in Firebase: Authentication → Email/Password',
 
     dataTitle: 'Data',
     dataHelp: 'Your data lives on this device only. Export a backup regularly.',

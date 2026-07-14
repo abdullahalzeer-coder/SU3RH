@@ -79,6 +79,10 @@ function friendly(e) {
     'auth/too-many-requests': 'tooMany',
     'auth/network-request-failed': 'netError',
     'permission-denied': 'permDenied',
+    // Project-side setup not finished — say so plainly rather than leaking
+    // Firebase's own wording, which means nothing to the person reading it.
+    'auth/configuration-not-found': 'authNotEnabled',
+    'auth/operation-not-allowed': 'authNotEnabled',
   };
   const err = new Error(map[code] || e?.message || 'unknown');
   err.i18n = map[code] || null;
