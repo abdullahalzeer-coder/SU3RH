@@ -1,0 +1,21 @@
+rules_version = '2';
+
+// Paste these into: Firebase Console -> Firestore Database -> Rules -> Publish.
+//
+// This is the ONLY thing protecting your data. The config in firebase-config.js
+// is public by design, so without these rules anyone could read and write your
+// database. With them, a signed-in user can touch exactly one document — their
+// own — and nothing else in the project is reachable at all.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Everything else: denied.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

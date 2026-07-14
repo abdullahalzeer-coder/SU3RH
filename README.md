@@ -111,13 +111,48 @@ console if you want a hard ceiling.
 - **عربي / English** — full RTL Arabic and English, toggled from the top bar.
 - Works offline; browse and log past days.
 
+## Cloud sync (Firebase) — optional
+
+Without it, everything lives in `localStorage` on the one device, and clearing Safari's website
+data erases your history. Turn on sync and your data is backed up and shared across devices.
+
+**Setup (once, ~3 minutes):**
+
+1. **Create the project** — https://console.firebase.google.com → *Add project*. Google Analytics
+   is not needed; turn it off.
+2. **Register a web app** — in the project, click the **`</>`** (Web) icon. Give it any nickname.
+   Do NOT tick "Firebase Hosting" (GitHub Pages already hosts this). You'll be shown a
+   `firebaseConfig` block — copy it.
+3. **Paste it into [`firebase-config.js`](firebase-config.js)**, filling in the six values.
+4. **Turn on login** — *Build → Authentication → Get started → Email/Password → Enable → Save.*
+5. **Create the database** — *Build → Firestore Database → Create database →* pick a region →
+   start in **production mode** (locked; the rules in the next step open exactly what's needed).
+6. **Publish the rules** — *Firestore Database → Rules*, paste the contents of
+   [`firestore.rules`](firestore.rules), and click **Publish**. **Do not skip this** — see below.
+7. Push, then open the app → **Settings → المزامنة السحابية** → create an account and sign in.
+
+**On the config being public:** `firebase-config.js` is committed to a public repo, and that is
+fine — Firebase publishes these values in every web app on the internet. `apiKey` there is a
+project *identifier*, not a password. The thing that actually protects your data is step 6: the
+security rules let a signed-in user read and write exactly one document (their own) and nothing
+else. **If you skip the rules, your database is world-readable.** The rules are the lock; the
+config is just the street address.
+
+**How sync behaves:** the first time you sign in on a device, the app **merges** — the union of
+what's on that device and what's in the cloud — so switching sync on can never lose data. After
+that the cloud is authoritative: local edits push up (debounced), and changes from another device
+flow down. That's what makes deletions work; a permanent union would resurrect every meal you
+ever deleted. Firestore's offline cache means edits made with no signal are queued and sent when
+you reconnect.
+
+**Cost:** far inside Firebase's free Spark tier. This app writes a single small document per user.
+
 ## Your data
 
-Everything is stored **on your device only** (`localStorage`). There is no server and no account.
+Signed out, everything is stored **on your device only** (`localStorage`) — no server, no account.
 
-That means: clearing Safari's website data, or deleting the app, **erases your history**.
-Use **الإعدادات → تصدير نسخة / Settings → Export backup** regularly — it saves a JSON file you
-can re-import on any device.
+Either way, **الإعدادات → تصدير نسخة / Settings → Export backup** saves a JSON file you can
+re-import anywhere. Worth doing occasionally even with sync on.
 
 ## Files
 
@@ -129,6 +164,9 @@ can re-import on any device.
 | `ai.js` | Claude / Gemini / OpenAI adapters + image downscaling |
 | `nutrients.js` | Micronutrient definitions (units, targets, goal-vs-limit) |
 | `foods.js` | Ingredient database — 122 foods, per 100 g |
+| `cloud.js` | Firebase Auth + Firestore sync (ES module, loaded from CDN) |
+| `firebase-config.js` | Your Firebase project config — fill this in to enable sync |
+| `firestore.rules` | Security rules — paste into the Firebase console |
 | `i18n.js` | Arabic + English strings |
 | `sw.js` | Service worker (offline caching) |
 | `manifest.webmanifest` | PWA metadata |

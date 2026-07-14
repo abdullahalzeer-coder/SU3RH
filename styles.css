@@ -370,6 +370,17 @@ button, input, select { font-family: inherit; font-size: 16px; color: inherit; }
 .check { display: flex; align-items: center; gap: 9px; font-size: 14px; color: var(--text-dim); }
 .check input { width: 18px; height: 18px; accent-color: var(--green); }
 
+/* ---------- cloud sync ---------- */
+.cloud-status {
+  display: block; margin: 12px 0;
+  padding: 10px 12px; border-radius: 11px;
+  font-size: 13px; font-weight: 700; text-align: center;
+}
+.cloud-status.on  { background: var(--green-soft); color: var(--green-ink); }
+.cloud-status.off { background: var(--panel); color: var(--text-mute); }
+
+#resetPassBtn { color: var(--text-dim); align-self: center; padding: 4px; }
+
 /* ---------- meal builder ---------- */
 .cat-row {
   display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px;

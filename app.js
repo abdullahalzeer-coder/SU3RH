@@ -49,6 +49,7 @@ function save() {
   } catch {
     toast('Storage full — export a backup and clear old data.', true);
   }
+  schedulePush();   // no-op unless signed in
 }
 const getKey = p => localStorage.getItem(keyStore(p || S.ai.provider)) || '';
 const setKey = (p, k) => k ? localStorage.setItem(keyStore(p), k) : localStorage.removeItem(keyStore(p));
@@ -535,6 +536,159 @@ function clearBuilder() {
   $('#btName').value = '';
   $('#btSave').checked = false;
   $('#builder').hidden = true;
+}
+
+/* ================= CLOUD SYNC =================
+ * Model: the first time you sign in on a device we MERGE — the union of what
+ * is on the phone and what is in the cloud — so adopting sync can never lose
+ * data. After that merge the cloud is authoritative: local edits are pushed,
+ * remote changes are applied. That's what makes deletes work; a permanent
+ * union-merge would resurrect every meal you ever deleted.
+ */
+let cloudUser = null;
+let applyingRemote = false;   // guards the push->snapshot->apply->push loop
+let pushTimer = null;
+let lastSyncAt = 0;
+
+const mergedFlag = uid => `seera.merged.${uid}`;
+
+function schedulePush() {
+  if (!window.Cloud?.configured || !cloudUser || applyingRemote) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => {
+    Cloud.push(structuredClone(S));
+  }, 800);   // coalesce bursts of edits into one write
+}
+
+/** Union of two states — used once, at first sign-in on a device. */
+function mergeStates(a, b) {
+  const out = structuredClone(b);   // start from remote
+  const newer = (a.updatedAtMs || 0) >= (b.updatedAtMs || 0) ? a : b;
+
+  // Scalars: whichever side was touched most recently.
+  out.goals = newer.goals ?? b.goals;
+  out.profile = newer.profile ?? b.profile;
+  out.micros = newer.micros ?? b.micros;
+  out.ai = newer.ai ?? b.ai;
+  out.lang = newer.lang ?? b.lang;
+
+  // Meals: union per day, de-duplicated by entry id.
+  out.days = { ...(b.days || {}) };
+  for (const [date, entries] of Object.entries(a.days || {})) {
+    const byId = new Map((out.days[date] || []).map(e => [e.id, e]));
+    for (const e of entries) byId.set(e.id, e);
+    out.days[date] = [...byId.values()];
+  }
+
+  // Weights: one per date.
+  const wByDate = new Map((b.weights || []).map(w => [w.date, w]));
+  for (const w of a.weights || []) wByDate.set(w.date, w);
+  out.weights = [...wByDate.values()].sort((x, y) => x.date.localeCompare(y.date));
+
+  // Saved meals + custom ingredients: union by id/key.
+  const byKey = (list, k) => new Map((list || []).map(x => [x[k], x]));
+  const savedM = byKey(b.saved, 'id');
+  for (const m of a.saved || []) savedM.set(m.id, m);
+  out.saved = [...savedM.values()];
+
+  const cfM = byKey(b.customFoods, 'key');
+  for (const c of a.customFoods || []) cfM.set(c.key, c);
+  out.customFoods = [...cfM.values()];
+
+  return out;
+}
+
+function applyRemote(remote) {
+  applyingRemote = true;
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(remote));
+    S = load();
+    if (!S.days[viewDate]) viewDate = todayISO();
+    builder = builder.filter(r => foodBy(r.key));   // a device may have deleted a custom ingredient
+    applyLang();
+    lastSyncAt = Date.now();
+    renderCloud();
+  } finally {
+    applyingRemote = false;
+  }
+}
+
+async function onSignedIn(u) {
+  cloudUser = u;
+  renderCloud();
+
+  try {
+    const remote = await Cloud.fetchOnce();
+
+    if (!remote) {
+      // Nothing in the cloud yet: this device seeds it.
+      await Cloud.push(structuredClone(S));
+    } else if (!localStorage.getItem(mergedFlag(u.uid))) {
+      // First sign-in on this device: union, so neither side is lost.
+      const merged = mergeStates({ ...S, updatedAtMs: Date.now() }, remote);
+      applyRemote(merged);
+      await Cloud.push(structuredClone(S));
+    } else {
+      // Already merged before: the cloud is the truth.
+      applyRemote(remote);
+    }
+
+    localStorage.setItem(mergedFlag(u.uid), '1');
+    lastSyncAt = Date.now();
+    toast(t('syncOn'));
+  } catch (e) {
+    toast(`${t('syncFailed')} — ${cloudErr(e)}`, true);
+  }
+  renderCloud();
+}
+
+const cloudErr = e => (e.i18n ? t(e.i18n) : e.message);
+
+function renderCloud() {
+  const box = $('#cloudCard');
+  if (!window.Cloud?.configured) {
+    $('#cloudStatus').textContent = t('cloudNotSetUp');
+    $('#cloudStatus').className = 'cloud-status off';
+    $('#authForm').hidden = true;
+    $('#cloudAccount').hidden = true;
+    return;
+  }
+
+  if (cloudUser) {
+    $('#cloudStatus').textContent = lastSyncAt
+      ? `${t('syncedAs')} ${cloudUser.email}`
+      : t('syncing');
+    $('#cloudStatus').className = 'cloud-status on';
+    $('#authForm').hidden = true;
+    $('#cloudAccount').hidden = false;
+    $('#cloudEmail').textContent = cloudUser.email;
+  } else {
+    $('#cloudStatus').textContent = t('signedOut');
+    $('#cloudStatus').className = 'cloud-status off';
+    $('#authForm').hidden = false;
+    $('#cloudAccount').hidden = true;
+  }
+}
+
+function initCloud() {
+  if (!window.Cloud?.configured) { renderCloud(); return; }
+
+  Cloud.on('auth', u => {
+    if (u) onSignedIn(u);
+    else { cloudUser = null; lastSyncAt = 0; renderCloud(); }
+  });
+
+  Cloud.on('remote', remote => {
+    if (applyingRemote) return;
+    applyRemote(remote);
+  });
+
+  Cloud.on('status', s => {
+    if (s.kind === 'synced') { lastSyncAt = s.at; renderCloud(); }
+    if (s.kind === 'error') toast(`${t('syncFailed')} — ${s.message}`, true);
+  });
+
+  renderCloud();
 }
 
 /* ================= CUSTOM INGREDIENTS ================= */
@@ -1254,7 +1408,44 @@ function init() {
     applyLang();
   };
 
+  // cloud sync
+  const authFields = () => ({
+    email: $('#authEmail').value.trim(),
+    pass: $('#authPass').value,
+  });
+  const withAuth = fn => async () => {
+    const { email, pass } = authFields();
+    if (!email || !pass) { toast(t('needEmailPass'), true); return; }
+    try {
+      await fn(email, pass);
+      $('#authPass').value = '';
+    } catch (e) {
+      toast(cloudErr(e), true);
+    }
+  };
+  $('#signInBtn').onclick = withAuth((e, p) => Cloud.signIn(e, p));
+  $('#signUpBtn').onclick = withAuth((e, p) => Cloud.signUp(e, p));
+  $('#signOutBtn').onclick = async () => {
+    await Cloud.signOut();
+    toast(t('signedOut'));
+  };
+  $('#resetPassBtn').onclick = async () => {
+    const { email } = authFields();
+    if (!email) { toast(t('needEmail'), true); return; }
+    try {
+      await Cloud.resetPassword(email);
+      toast(t('resetSent'));
+    } catch (e) {
+      toast(cloudErr(e), true);
+    }
+  };
+
   applyLang();
+
+  // cloud.js is a module, so it runs before DOMContentLoaded — but listen for
+  // the event too, in case that ordering ever changes.
+  if (window.Cloud) initCloud();
+  else window.addEventListener('cloud-ready', initCloud, { once: true });
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 }

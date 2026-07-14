@@ -473,6 +473,42 @@
         </form>
       </div>
 
+      <div class="card" id="cloudCard">
+        <div class="card-title"><span>☁️</span><h2 data-i18n="cloudTitle">المزامنة السحابية</h2></div>
+        <p class="muted small" data-i18n="cloudHelp">سجّل الدخول لحفظ بياناتك في السحابة ومزامنتها بين أجهزتك. بدون تسجيل دخول، تبقى البيانات على هذا الجهاز فقط.</p>
+
+        <div class="cloud-status off" id="cloudStatus">—</div>
+
+        <!-- signed out -->
+        <div id="authForm" class="form" hidden>
+          <label class="field">
+            <span data-i18n="email">البريد الإلكتروني</span>
+            <input type="email" id="authEmail" autocomplete="username" spellcheck="false" placeholder="you@example.com">
+          </label>
+          <label class="field">
+            <span data-i18n="password">كلمة المرور</span>
+            <input type="password" id="authPass" autocomplete="current-password" placeholder="••••••••">
+          </label>
+          <div class="row-2">
+            <button class="btn btn-secondary" id="signUpBtn" type="button" data-i18n="signUp">إنشاء حساب</button>
+            <button class="btn btn-primary" id="signInBtn" type="button" data-i18n="signIn">تسجيل الدخول</button>
+          </div>
+          <button class="btn-link" id="resetPassBtn" type="button" data-i18n="forgotPass">نسيت كلمة المرور؟</button>
+        </div>
+
+        <!-- signed in -->
+        <div id="cloudAccount" hidden>
+          <div class="item" style="margin-top:12px">
+            <div class="item-ico">👤</div>
+            <div class="item-main">
+              <div class="item-name" id="cloudEmail">—</div>
+              <div class="item-macros" data-i18n="syncActive">المزامنة مفعّلة</div>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-block" id="signOutBtn" type="button" style="margin-top:10px" data-i18n="signOut">تسجيل الخروج</button>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-title"><span>🧪</span><h2 data-i18n="microSettingsTitle">المغذيات الدقيقة</h2></div>
         <p class="muted small" data-i18n="microSettingsHelp">اختر ما تريد تتبّعه، وعدّل الهدف اليومي لكل عنصر.</p>
@@ -550,6 +586,8 @@
 <script src="foods.js"></script>
 <script src="i18n.js"></script>
 <script src="ai.js"></script>
+<script src="firebase-config.js"></script>
 <script src="app.js"></script>
+<script type="module" src="cloud.js"></script>
 </body>
 </html>

@@ -5,13 +5,15 @@
  * (A pure cache-first SW would pin users to the first version they ever
  * loaded, which is exactly the bug this replaced.)
  */
-const CACHE = 'seera-v6';
+const CACHE = 'seera-v7';
 const SHELL = [
   './',
   './index.html',
   './styles.css',
   './nutrients.js',
   './foods.js',
+  './firebase-config.js',
+  './cloud.js',
   './i18n.js',
   './ai.js',
   './app.js',
