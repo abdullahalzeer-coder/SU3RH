@@ -79,7 +79,10 @@ console if you want a hard ceiling.
   Log whichever state you actually put on the scale. If you weigh your rice dry before cooking, use
   the ناشف / dry entry.
 
-  Eggs are **counted, not weighed** — "2 eggs" (72 kcal each), not "100 g of egg". Half-units work.
+  Ingredients that come in natural pieces (tomato, egg, banana, bread slices, dates, …) have a
+  **grams ↔ piece toggle** on each builder row — type "3" for three tomatoes or switch to grams and
+  type "200". Switching units never changes the logged amount, only how it's shown. Foods with no
+  natural piece (rice, oil, beans) stay grams-only.
 
 - **مكوناتي المخصصة** — save your own ingredients, two ways:
   - **📷 Scan the label.** Photograph the Nutrition Facts panel on a package. The AI *transcribes*

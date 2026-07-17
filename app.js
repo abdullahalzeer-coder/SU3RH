@@ -435,12 +435,15 @@ function addToBuilder(key) {
   const fd = foodBy(key);
   if (!fd) return;
 
-  // One tap = one piece for counted foods, one typical portion otherwise.
-  const step = isCounted(fd) ? fd.unit.g : (fd.serving || 100);
+  // A food with a piece weight defaults to piece mode ("1 tomato"); anything
+  // else is weighed. Either way `grams` is the source of truth — `mode` only
+  // decides how the amount is shown, so switching units never changes intake.
+  const piece = isCounted(fd);
+  const stepFor = row => (row.mode === 'piece' ? fd.unit.g : (fd.serving || 100));
 
   const existing = builder.find(r => r.key === key);
-  if (existing) existing.grams += step;   // tapping again adds another
-  else builder.push({ key, grams: step });
+  if (existing) existing.grams += stepFor(existing);   // tapping again adds another
+  else builder.push({ key, grams: piece ? fd.unit.g : (fd.serving || 100), mode: piece ? 'piece' : 'g' });
 
   renderBuilder();
 }
@@ -458,13 +461,22 @@ function renderBuilder() {
   $('#builderList').innerHTML = builder.map((row, i) => {
     const fd = foodBy(row.key);
     const s = scaleFood(fd, row.grams);
-    const counted = isCounted(fd);
+    const canPiece = isCounted(fd);
+    const inPiece = canPiece && row.mode === 'piece';
 
-    // Counted foods take a count (2 eggs); everything else takes grams.
-    const amount = counted ? Math.round((row.grams / fd.unit.g) * 100) / 100 : r0(row.grams);
-    const sub = counted
+    // In piece mode the input shows a count (2 tomatoes); in grams it shows grams.
+    const amount = inPiece ? Math.round((row.grams / fd.unit.g) * 100) / 100 : r0(row.grams);
+    const sub = inPiece
       ? `${r0(s.cal)} ${t('kcal')} · ${r0(row.grams)}${t('gram')}`   // show the grams too, for reference
       : `${r0(s.cal)} ${t('kcal')}`;
+
+    // A food with a piece weight gets a grams/piece toggle; everything else a static غ.
+    const unitCtrl = canPiece
+      ? `<div class="unit-toggle">
+           <button type="button" class="ut ${!inPiece ? 'on' : ''}" data-mode="g:${i}">${t('gram')}</button>
+           <button type="button" class="ut ${inPiece ? 'on' : ''}" data-mode="piece:${i}">${esc(unitName(fd))}</button>
+         </div>`
+      : `<em class="unit">${t('gram')}</em>`;
 
     return `
       <div class="builder-row">
@@ -473,9 +485,9 @@ function renderBuilder() {
           <div class="br-cal">${sub}</div>
         </div>
         <div class="br-amount">
-          <input type="number" min="0" max="5000" step="${counted ? '0.5' : '1'}"
+          <input type="number" min="0" max="5000" step="${inPiece ? '0.5' : '1'}"
                  inputmode="decimal" value="${amount}" data-grams="${i}">
-          <em class="unit">${counted ? esc(unitName(fd)) : t('gram')}</em>
+          ${unitCtrl}
         </div>
         <button class="item-del" type="button" data-brm="${i}" aria-label="remove">✕</button>
       </div>`;
@@ -484,10 +496,21 @@ function renderBuilder() {
   $$('#builderList [data-grams]').forEach(inp => {
     inp.oninput = () => {
       const i = +inp.dataset.grams;
-      const fd = foodBy(builder[i].key);
+      const row = builder[i];
+      const fd = foodBy(row.key);
       const val = Math.max(0, +inp.value || 0);
-      builder[i].grams = isCounted(fd) ? val * fd.unit.g : val;
+      row.grams = (row.mode === 'piece') ? val * fd.unit.g : val;
       renderBuilderTotals();               // live, without rebuilding the row you're typing in
+    };
+  });
+
+  // Grams <-> piece toggle. Keep `grams` fixed so the meal amount is unchanged;
+  // only the way it's shown flips (200g tomato <-> ~1.7 pieces).
+  $$('#builderList [data-mode]').forEach(btn => {
+    btn.onclick = () => {
+      const [mode, i] = btn.dataset.mode.split(':');
+      builder[+i].mode = mode;
+      renderBuilder();
     };
   });
   $$('#builderList [data-brm]').forEach(b => {
@@ -524,7 +547,8 @@ function renderBuilderTotals() {
     if (!cell) return;
     const fd = foodBy(row.key);
     const cal = r0(scaleFood(fd, row.grams).cal);
-    cell.textContent = isCounted(fd)
+    const inPiece = isCounted(fd) && row.mode === 'piece';
+    cell.textContent = inPiece
       ? `${cal} ${t('kcal')} · ${r0(row.grams)}${t('gram')}`
       : `${cal} ${t('kcal')}`;
   });
